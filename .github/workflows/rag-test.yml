@@ -1,0 +1,16 @@
+name: RAG Pipeline CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build and Run Tests
+        run: |
+          docker compose up -d --build
+          docker compose run --rm rag python -m pytest tests/
+
