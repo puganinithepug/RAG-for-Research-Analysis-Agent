@@ -27,7 +27,17 @@ def ingest() -> int:
     ]
 
     if chunks:
-        get_vectorstore().add_documents(chunks, ids=ids)
+        vectorstore = get_vectorstore()
+        batch_size = 1000
+
+        for start in range(0, len(chunks), batch_size):
+            end = start + batch_size
+            vectorstore.add_documents(
+                chunks[start:end],
+                ids=ids[start:end],
+            )
+            print(f"Indexed {min(end, len(chunks))}/{len(chunks)} chunks")
+
 
     return len(chunks)
 

@@ -15,6 +15,7 @@ services:
     volumes:
       - ${RAG_DOCUMENTS_DIR:?Set RAG_DOCUMENTS_DIR}:/documents:ro
       - ./data/chroma:/data/chroma
+      - ./data/checkpoints:/data/checkpoints
 
 volumes:
   ollama_data:

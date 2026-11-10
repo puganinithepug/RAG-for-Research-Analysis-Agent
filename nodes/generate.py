@@ -4,12 +4,18 @@ from app.state import RAGState
 
 import re
 
+from langchain_core.messages import AIMessage
+
 def generate(state: RAGState) -> dict:
+    print(f"[generate] received={len(state.get('documents', []))}")
+
     documents = state.get("documents", [])
 
     if not documents:
+        answer="I couldn't find relevant evidence in the indexed documents."
         return {
-            "answer": "I couldn't find relevant evidence in the indexed documents."
+            "answer": answer,
+            "messages": [AIMessage(content=answer)],
         }
 
     evidence_parts = []
@@ -23,9 +29,18 @@ def generate(state: RAGState) -> dict:
 
         evidence_parts.append(f"{label}\n{document.page_content}")
 
+    messages = state.get("messages", [])
+    prior_messages = messages[:-1] if messages else []
+
+    history = "\n".join(
+        f"{message.type}: {message.content}"
+        for message in prior_messages
+    )
+
     prompt = ANSWER_PROMPT.format(
         question=state["question"],
         context="\n\n".join(evidence_parts),
+        history=history or "(No earlier conversation.)",
     )
 
     response = get_llm(temp=temp(state["question"])).invoke(prompt)
@@ -50,5 +65,5 @@ def generate(state: RAGState) -> dict:
     if sources:
         answer += "\n\nSources:\n" + "\n".join(sources)
 
-    return {"answer": answer}
+    return {"answer": answer, "messages": [AIMessage(content=answer)],}
 
