@@ -1,4 +1,4 @@
-**RAG for Research and Document Analysis**
+RAG for Research and Document Analysis
 
 This RAG system is built using LangGraph. 
 Is purpose is to accurately extract and summarize text-based information retrieved from a library of pdfs, epub, txt, md, jpeg/jpg, png format documents.
@@ -12,9 +12,7 @@ Grading tasks run in parallel and then their updates are merged into a documents
 The generation and evaluation rely on tailored prompts. Generation uses a prompt which instructs the generator model to answer the query with at least three pieces of evidence from texts retrieved.
 Evaluation uses relevence and support prompts to instruct the evaluator model to decide on a scale from 0.0 to 1.0 how relevant each retrieved source is.
 
-**How To Use:**
-
-_potentially might want to use sudo_
+How To Use:
  
 cd Rag-for-Research-Analysis-Agent
 
