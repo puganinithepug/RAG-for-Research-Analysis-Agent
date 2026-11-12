@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 
 from app.config import settings
-from app.graph import build_graph
-from app.ingest import ingest
+from app.graph import build_graph, cache
+from app.ingest import ingest, rebuild_index
 import asyncio
 
 from langchain_core.messages import HumanMessage
@@ -34,6 +34,12 @@ async def run_question(args):
         graph = build_graph(
             checkpointer=checkpointer,
         )
+        if args.clear_cache:
+            cache.clear()
+
+        if args.clear_thread and checkpointer is not None:
+            await checkpointer.adelete_thread(args.thread_id)
+
 
         return await graph.ainvoke(
             initial_state(args.question),
@@ -44,9 +50,16 @@ async def run_question(args):
             },
         )
 
-async def run_chat(thread_id):
+async def run_chat(args):
     async with AsyncSqliteSaver.from_conn_string(str(settings.checkpoint_db)) as checkpointer:
         graph = build_graph(checkpointer=checkpointer)
+
+        if args.clear_cache:
+            cache.clear()
+
+        if args.clear_thread and checkpointer is not None:
+            await checkpointer.adelete_thread(args.thread_id)
+
 
         while True:
             question = input("you> ").strip()
@@ -57,7 +70,7 @@ async def run_chat(thread_id):
 
             result = await graph.ainvoke(
                 initial_state(question),
-                config={"configurable": {"thread_id": thread_id},
+                config={"configurable": {"thread_id": args.thread_id},
                 "max_concurrency": 2,}
 
             )
@@ -68,11 +81,29 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    subparsers.add_parser("ingest", help="Index files in the documents directory")
+    ingest_parser = subparsers.add_parser("ingest", help="Index files in the documents directory")
 
     ask_parser = subparsers.add_parser("ask", help="Ask a question")
     
     chat_parser = subparsers.add_parser("chat", help="Start a chat")
+
+    ingest_parser.add_argument(
+        "--rebuild-index",
+        action="store_true",
+        help="Delete the existing Chroma collection and ingest all documents again",
+    )
+
+    ingest_parser.add_argument(
+        "--file",
+        help="Ingest just one file, using its path inside the container",
+    )
+
+    chat_parser.add_argument("--clear-cache", action="store_true")
+    ask_parser.add_argument("--clear-cache", action="store_true")
+    
+    chat_parser.add_argument("--clear-thread", action="store_true")
+    ask_parser.add_argument("--clear-thread", action="store_true")
+
 
     chat_parser.add_argument("--thread-id", required=True)
     ask_parser.add_argument("question")
@@ -82,16 +113,23 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "ingest":
-        count = ingest()
+        if args.rebuild_index and args.file:
+            parser.error("--rebuild-index cannot be combined with --file")
+        elif args.rebuild_index:
+            count = rebuild_index()
+        elif args.file:
+            count = ingest(args.file)
+        else:
+            count = ingest()
         print(f"Indexed {count} chunks.")
         return
-    
+
     elif args.command=="ask":
         result = asyncio.run(run_question(args))
 
     elif args.command=="chat":
         print("To exit chat print exit or quit")
-        result=asyncio.run(run_chat(args.thread_id))
+        result=asyncio.run(run_chat(args))
         return
 
     else:

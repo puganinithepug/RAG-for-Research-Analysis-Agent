@@ -12,6 +12,8 @@ services:
       - ollama
     env_file:
       - .env
+    environment:
+      UNSTRUCTURED_DISABLE_NOTICE : "1"
     volumes:
       - ${RAG_DOCUMENTS_DIR:?Set RAG_DOCUMENTS_DIR}:/documents:ro
       - ./data/chroma:/data/chroma

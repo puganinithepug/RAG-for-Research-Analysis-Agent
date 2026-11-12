@@ -25,7 +25,20 @@ def retrieve(state):
 #        k=k,
 #    )
 
-    documents = get_vectorstore().similarity_search(query, k=k)
+    results = get_vectorstore().similarity_search_with_score(query, k=k)
+
+    print(f"[retrieve] query={query!r}, k={k}, returned={len(results)}")
+    for doc, score in results:
+        print(
+            f"score={score}, "
+            f"source={doc.metadata.get('source', '<missing source>')}, "
+            f"metadata={doc.metadata}"
+        )
+
+    documents = [doc for doc, score in results]
+
+
+#    documents = get_vectorstore().similarity_search(query, k=k)
 
     print(f"[retrieve] k={k}, returned={len(documents)}")
 
