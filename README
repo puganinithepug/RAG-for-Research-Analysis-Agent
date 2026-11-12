@@ -1,4 +1,39 @@
-docker compose up -d --build
-docker compose exec ollama ollama pull qwen3:8b
-docker compose exec ollama ollama pull nomic-embed-text
+RAG for Research and Document Analysis:
+
+This RAG system is built using LangGraph. 
+Is purpose is to accurately extract and summarize text-based information retrieved from a library of pdfs, epub, txt, md, jpeg/jpg, png format documents.
+During development, the model used for retrieval of documents and generation of responses was qwen3.8; the model used for grading and evaluation was a lighter-weight ption qwen2.5; for embeddings the nomic-embedding-model was used.
+The workflow begins at ingestion of documents which loads the documents based on their type. After documents are loaded, they are vetorized into a ChromaDB vector database.
+After ingestion the user can query a single question. The user can also start a chat. 
+There is a checkpointer database for keeping track of a specific chat's history (a chat is associated with a thread-id), this enables the model to contextualize future responses.
+There is also an in-memory cache so that the model does not have to retrieve the same documents again for a new query if what was previously retrieved contains relevant information.
+The RAG is enhanced with concurrent grading which lowers the latency of the pipeline after the documents are retrieved. Concurrent grading of documents is achieved using LangGraph’s Send API - fan-out/map-reduce pattern.
+Grading tasks run in parallel and then their updates are merged into a documents list which is then used to generate the answer.
+The generation and evaluation rely on tailored prompts. Generation uses a prompt which instructs the generator model to answer the query with at least three pieces of evidence from texts retrieved.
+Evaluation uses relevence and support prompts to instruct the evaluator model to decide on a scale from 0.0 to 1.0 how relevant each retrieved source is.
+
+How To Use:
+ 
+cd Rag-for-Research-Analysis-Agent
+
+docker service start
+
+docker compose build rag
+
+docker compose run --rm rag python -m app.main ingest // To ingest everything in library 
+or
+sudo docker compose run --rm rag python -m app.main ingest --rebuild-index // To clear the vector database first then re-ingest all documents in the library
+or
+sudo docker compose run --rm rag python -m app.main ingest --file "/documents/determined - robert sapolsky.pdf" // To ingest one specific document from the library 
+
+sudo docker compose run --rm rag python app.main chat --thread-id test --clear-cache --clear-thread
+or
+sudo docker compose run --rm rag python app.main chat --thread-id test // After execution of that command, docker runs and a chat appears with a promp for a query
+To exit chat print exit or quit
+you> what is determinism in context of biology?
+or
+sudo docker compose run --rm rag python app.main ask --thread-id test --clear-cache --clear-thread "[Question]" // Or run a standalone question query
+
+
+
 
