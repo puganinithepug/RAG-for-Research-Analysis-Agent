@@ -34,6 +34,10 @@ you> what is determinism in context of biology?
 or
 sudo docker compose run --rm rag python app.main ask --thread-id test --clear-cache --clear-thread "[Question]" // Or run a standalone question query
 
-
-
+To run tests:
+sudo docker compose run rag python -m tests.test_ingest
+or 
+sudo docker compose run rag python -m tests.test_retrieval
+or 
+sudo docker compose run rag python -m tests.test_graph
 
