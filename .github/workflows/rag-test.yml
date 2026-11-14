@@ -29,6 +29,27 @@ jobs:
       - name: Prepare documents directory
         run: mkdir -p "$RAG_DOCUMENTS_DIR"
 
+      - name: Create CI environment file
+        run: |
+          cat > .env <<EOF
+          RAG_DOCUMENTS_DIR=$RAG_DOCUMENTS_DIR
+          DOCUMENTS_PATH=$DOCUMENTS_PATH
+          CHROMA_PATH=$CHROMA_PATH
+          COLLECTION_NAME=$COLLECTION_NAME
+          CHECKPOINT_DB=$CHECKPOINT_DB
+          OLLAMA_BASE_URL=$OLLAMA_BASE_URL
+          LLM_MODEL=$LLM_MODEL
+          EMBEDDING_MODEL=$EMBEDDING_MODEL
+          GRADER_MODEL=$GRADER_MODEL
+          EVALUATOR_MODEL=$EVALUATOR_MODEL
+          CHUNK_SIZE=$CHUNK_SIZE
+          CHUNK_OVERLAP=$CHUNK_OVERLAP
+          TOP_K=$TOP_K
+          MAX_K=$MAX_K
+          MAX_ATTEMPTS=$MAX_ATTEMPTS
+          FAITHFULNESS_THRESHOLD=$FAITHFULNESS_THRESHOLD
+          EOF
+
       - name: Build and Run Tests
         run: |
           docker compose up -d --build
