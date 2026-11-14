@@ -5,6 +5,22 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DOCUMENTS_PATH: /documents
+      CHROMA_PATH: /tmp/chroma
+      COLLECTION_NAME: research
+      CHECKPOINT_DB: /tmp/checkpoints.sqlite
+      OLLAMA_BASE_URL: http://localhost:11434
+      LLM_MODEL: qwen3:8b
+      EMBEDDING_MODEL: nomic-embed-text
+      GRADER_MODEL: qwen2.5:7b-instruct
+      EVALUATOR_MODEL: qwen2.5:7b-instruct
+      CHUNK_SIZE: "900"
+      CHUNK_OVERLAP: "150"
+      TOP_K: "10"
+      MAX_K: "100"
+      MAX_ATTEMPTS: "2"
+      FAITHFULNESS_THRESHOLD: "0.75"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
