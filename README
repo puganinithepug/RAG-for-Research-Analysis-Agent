@@ -39,7 +39,10 @@ you> what is determinism in context of biology?
 or
 sudo docker compose run --rm rag python app.main ask --thread-id test --clear-cache --clear-thread "[Question]" // Or run a standalone question query
 
-To run tests:
+To run all tests using Makefile:
+make
+
+To run tests individually:
 sudo docker compose run --rm  rag python -m tests.test_ingest
 or 
 sudo docker compose run --rm rag python -m tests.test_retrieval
@@ -51,3 +54,5 @@ or
 sudo docker compose run -rm rag python -m tests.test_generate
 or 
 sudo docker compose run -rm rag python -m tests.test_evaluation
+
+There's also a CI/CD to run the Git Pre-Push Hook before every nw commit to the repository.

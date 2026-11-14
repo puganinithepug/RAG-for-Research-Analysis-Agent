@@ -117,7 +117,7 @@ async def evaluate(state: RAGState) -> dict:
             "context_precision": get_score("context_precision"),
             "faithfulness_score": faithfulness,
             "supported": faithfulness is not None and faithfulness >= settings.faithfulness_threshold,
-            "faithfulness_reason": str(result.get("faithfulness", "")),
+            "faithfulness_reason": str(result.get("faithfulness_reason", "")),
             "evaluation_error": "",
         }
         print(output)
