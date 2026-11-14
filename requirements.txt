@@ -26,4 +26,5 @@ unstructured_inference
 pytesseract 
 unstructured-pytesseract
 pdf2image
+pytest-asyncio
 
