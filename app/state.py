@@ -30,6 +30,9 @@ class RAGState(TypedDict, total=False):
     supported: bool
     
     grade_results: Annotated[list[GradeResult], add]
+    context_relevance: float
+    context_precision: float
+    
     faithfulness_score: float
     faithfulness_reason: str
     evaluation_error: str

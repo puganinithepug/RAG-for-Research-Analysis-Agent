@@ -47,8 +47,32 @@ available data
 
 """
 
-EVALUATE_PROMPT="""Evaluate whether the answer's factual claims are supported
-by the supplied context. Do not use outside knowledge.
-Return only a JSON object with keys: score (number from 0 to 1) and reason (short string). 
-A score of 1 means all claims are factual claims and are supported; 0 means none are supported.
+EVALUATE_PROMPT="""You are evaluating a RAG system. The query is the user's question. Treat the retrieved contexts as the only
+evidence for faithfulness. Treat the reference answer, when present, as the
+source of expected facts for recall and correctness.
+
+Return ONLY valid JSON with this schema:
+{
+  "context_relevance": 0.0,
+  "context_precision": 0.0,
+  "faithfulness_score": 0.0,
+  "supported": False,
+  "faithfulness_reason": "short reason or unavailable"
+  "evaluation_error": "short reason or unavailable"
+}
+
+Score each metric from 0.0 to 1.0.
+Judge both independently whether 1) it is topical - meaning that the answer is relevant to the query and 2) it is useful - meaning it contains informaion that helps answer the question.
+context_relevance is the fraction of contexts that are topical, score 0.0 to 1.0.
+context_precision is the fraction of contexts that are useful, score 0.0 to 1.0.
+faithfulness_score measures whether the answer's factual claims are supported by
+the contexts from 0.0 to 1.0; unsupported claims lower the score.
+supported is a boolean that defines whether the faithfulness score is above the minimum faithfulness threshold.
+faithfulness_reason is an explanation for why the model demonstrates the specific level of faithfulness (as defined by the faithfulness_score metric) but in plain words.
+If there was an evaluation error that occured during the evaluation process note it as evalaution_errror.
+If there are no contexts, use 0.0 for relevance,
+precision, recall (when applicable), and faithfulness.
+Do not infer missing facts. Do not reward an answer for being plausible if
+the supplied evidence does not support it.
 """
+

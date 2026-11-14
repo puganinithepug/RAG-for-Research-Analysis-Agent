@@ -20,12 +20,17 @@ docker service start
 
 docker compose build rag
 
+To run ingestion:
 docker compose run --rm rag python -m app.main ingest // To ingest everything in library 
 or
 sudo docker compose run --rm rag python -m app.main ingest --rebuild-index // To clear the vector database first then re-ingest all documents in the library
 or
 sudo docker compose run --rm rag python -m app.main ingest --file "/documents/determined - robert sapolsky.pdf" // To ingest one specific document from the library 
 
+To check the vector database:
+sudo docker compose run --rm rag python -m app.check_index // returns list of indexed documents, tool to check if ingestion an properly
+
+To start querying:
 sudo docker compose run --rm rag python app.main chat --thread-id test --clear-cache --clear-thread
 or
 sudo docker compose run --rm rag python app.main chat --thread-id test // After execution of that command, docker runs and a chat appears with a promp for a query
@@ -34,6 +39,15 @@ you> what is determinism in context of biology?
 or
 sudo docker compose run --rm rag python app.main ask --thread-id test --clear-cache --clear-thread "[Question]" // Or run a standalone question query
 
-
-
-
+To run tests:
+sudo docker compose run --rm  rag python -m tests.test_ingest
+or 
+sudo docker compose run --rm rag python -m tests.test_retrieval
+or 
+sudo docker compose run --rm rag python -m tests.test_graph
+or
+sudo docker compose run --rm rag python -m tests.test_grade
+or
+sudo docker compose run -rm rag python -m tests.test_generate
+or 
+sudo docker compose run -rm rag python -m tests.test_evaluation

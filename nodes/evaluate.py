@@ -11,9 +11,9 @@ client = AsyncOpenAI(
     base_url=f"{settings.ollama_base_url.rstrip('/')}/v1",
 )
 
-MAX_DOCS = 4
-MAX_CHARS_PER_DOC = 2500
-MAX_TOTAL_CHARS = 8000
+MAX_DOCS = 11
+MAX_CHARS_PER_DOC = 3000
+MAX_TOTAL_CHARS = 33000
 
 def shorten_contexts(documents: list) -> list[str]:
     contexts = []
@@ -40,6 +40,8 @@ async def evaluate(state: RAGState) -> dict:
 
     if not documents:
         output = {
+            "context_relevance": 0.0,
+            "context_precision": 0.0,
             "faithfulness_score": 0.0,
             "supported": False,
             "faithfulness_reason": "No retrieved evidence to evaluate.",
@@ -98,14 +100,24 @@ async def evaluate(state: RAGState) -> dict:
             raise ValueError(f"Evaluator did not return JSON: {raw}")
 
         result = json.loads(raw[start : end + 1])
-        score = float(result["score"])
-        if not 0.0 <= score <= 1.0:
-            raise ValueError(f"Evaluator score out of range: {score}")
+        
+        def get_score(name: str) -> float | None:
+            value = result.get(name)
+            if value is None:
+                return None
+            value = float(value)
+            if not 0.0 <= value <= 1.0:
+                raise ValueError(f"{name} out of range: {value}")
+            return value
+        
+        faithfulness = get_score("faithfulness")
 
         output =  {
-            "faithfulness_score": score,
-            "supported": score >= settings.faithfulness_threshold,
-            "faithfulness_reason": str(result.get("reason", "")),
+            "context_relevance": get_score("context_relevance"),
+            "context_precision": get_score("context_precision"),
+            "faithfulness_score": faithfulness,
+            "supported": faithfulness is not None and faithfulness >= settings.faithfulness_threshold,
+            "faithfulness_reason": str(result.get("faithfulness", "")),
             "evaluation_error": "",
         }
         print(output)
@@ -115,6 +127,8 @@ async def evaluate(state: RAGState) -> dict:
         elapsed = time.perf_counter() - started
         print(f"[evaluate] Failed after {elapsed:.2f}s: {exc}", flush=True)
         return {
+            "context_relevance": 0.0,
+            "context_precision": 0.0,
             "faithfulness_score": 0.0,
             "supported": False,
             "faithfulness_reason": "Evaluation failed.",
